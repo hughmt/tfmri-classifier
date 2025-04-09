@@ -1,0 +1,13 @@
+LICENSE
+README.md
+setup.py
+src/data_prep/__init__.py
+src/data_prep/extract_connectome.py
+src/data_prep/lut_to_csv.py
+src/data_prep/plot_connectome.py
+src/data_prep/test.py
+src/tfmri_classifier.egg-info/PKG-INFO
+src/tfmri_classifier.egg-info/SOURCES.txt
+src/tfmri_classifier.egg-info/dependency_links.txt
+src/tfmri_classifier.egg-info/requires.txt
+src/tfmri_classifier.egg-info/top_level.txt

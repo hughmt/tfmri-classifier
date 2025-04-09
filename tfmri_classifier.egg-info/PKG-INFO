@@ -1,0 +1,9 @@
+Metadata-Version: 2.2
+Name: tfmri_classifier
+Version: 0.1
+License-File: LICENSE
+Requires-Dist: numpy
+Requires-Dist: pandas
+Requires-Dist: matplotlib
+Requires-Dist: seaborn
+Dynamic: requires-dist
