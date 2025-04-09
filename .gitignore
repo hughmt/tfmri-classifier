@@ -1,0 +1,22 @@
+# Ignore synced fMRI data
+/data/
+
+# Ignore Python cache and environments
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+env/
+venv/
+
+# Jupyter notebook checkpoints
+.ipynb_checkpoints/
+
+# VSCode settings (optional)
+.vscode/
+
+# Logs and temporary files
+*.log
+*.tmp
+.DS_Store
