@@ -9,6 +9,10 @@ DATA_DIR = os.path.join(PROJECT_ROOT, "data")
 DERIVATIVES_DIR = os.path.join(DATA_DIR, "derivatives")
 FMRIPREP_DIR = os.path.join(DERIVATIVES_DIR, "fmriprep")
 CONNECTOMES_DIR = os.path.join(DERIVATIVES_DIR, "connectomes")
+RESULTS_DIR = os.path.join(DATA_DIR, "results")
+
+# Create directories if they don't exist
+os.makedirs(RESULTS_DIR, exist_ok=True)
 
 # Resources (stored inside the package)
 RESOURCES_DIR = os.path.join(PACKAGE_ROOT, "resources")
