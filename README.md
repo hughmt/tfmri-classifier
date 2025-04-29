@@ -6,22 +6,47 @@ The goal is to evaluate how well models trained on functional connectomes can cl
 
 ## 🧪 Experiments
 
-### Binary Classification
+### 1. Binary Classification
 Classify between task and resting state using XGBoost:
 ```bash
 python -m tfmri_classifier.modelling.binary_classifier --task workingmemory
 ```
 
-### Network Ablation Study
+### 2. Hyperparameter Tuning
+Optimize model performance through grid search:
+```bash
+python -m tfmri_classifier.modelling.tune_top_classifiers --task workingmemory
+```
+
+### 3. Multi-class Classification
+Classify between all available tasks:
+```bash
+python -m tfmri_classifier.modelling.train_multiclass
+```
+
+### 4. Network Ablation Study
 Assess how classification performance degrades as networks are progressively removed:
 ```bash
 python -m tfmri_classifier.modelling.ablation_study
 ```
 
-### Visualize Results
-Generate combined ablation plot for all tasks:
+### 5. Task Embedding Analysis
+Visualize task relationships using dimensionality reduction (PCA -> t-SNE):
 ```bash
+python -m tfmri_classifier.visualization.plot_task_embedding
+```
+
+### Visualize Results
+Generate plots for the experiments:
+```bash
+# Combined ablation plot
 python -m tfmri_classifier.visualization.plot_combined_ablation
+
+# Classifier comparison
+python -m tfmri_classifier.visualization.plot_classifier_comparison
+
+# Task embedding plot
+python -m tfmri_classifier.visualization.plot_task_embedding
 ```
 
 Results are saved in `data/results/`.
