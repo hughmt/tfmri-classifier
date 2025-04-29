@@ -2,7 +2,29 @@
 
 This repository contains code for classifying cognitive tasks using functional connectivity features extracted from task-based fMRI data. It used data from the AOMIC dataset (ds002785), specifically the preprocessed outputs from fMRIPrep.
 
-The goal is to evaluate how well models trained on functional connectomes can classify task states, and whether brain networks not typically associated with a task contribute to classification accuracy.
+The goal is to evaluate how well models trained on functional connectomes can classify task states, and investigate the contribution of different brain networks to task classification through ablation studies.
+
+## 🧪 Experiments
+
+### Binary Classification
+Classify between task and resting state using XGBoost:
+```bash
+python -m tfmri_classifier.modelling.binary_classifier --task workingmemory
+```
+
+### Network Ablation Study
+Assess how classification performance degrades as networks are progressively removed:
+```bash
+python -m tfmri_classifier.modelling.ablation_study
+```
+
+### Visualize Results
+Generate combined ablation plot for all tasks:
+```bash
+python -m tfmri_classifier.visualization.plot_combined_ablation
+```
+
+Results are saved in `data/results/`.
 
 ---
 ## 🛠️ Setup Instructions
@@ -75,6 +97,30 @@ pip install awscli
 ```
 
 No authentication is required to access OpenNeuro data. You do not need to run aws configure.
+
+### Data Preparation
+
+After downloading the data, you can extract the connectomes for each task using:
+
+```bash
+python -m tfmri_classifier.data_prep.extract_connectome --task TASK_NAME
+```
+
+Available tasks:
+- `anticipation`
+- `emomatching`
+- `faces`
+- `gstroop`
+- `restingstate`
+- `workingmemory`
+
+You can process a specific subject by adding the `--subject` parameter:
+
+```bash
+python -m tfmri_classifier.data_prep.extract_connectome --task workingmemory --subject sub-0001
+```
+
+The extracted connectomes will be saved in `data/derivatives/connectomes/`.
 
 ---
 
