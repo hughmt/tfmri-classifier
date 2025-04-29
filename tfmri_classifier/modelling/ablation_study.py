@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 from datetime import datetime
 import json
+import glob
 from sklearn.model_selection import GroupKFold
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
@@ -125,18 +126,11 @@ def train_and_evaluate(X, y, subjects, mask=None):
     """Train and evaluate model with optional feature masking."""
     # Apply mask if provided
     if mask is not None:
-        X_masked = X[:, mask]
-        if X_masked.shape[1] == 0:
-            # If all features are masked out, return zero accuracy
-            return {
-                'accuracy': 0.0,
-                'std_accuracy': 0.0,
-                'fold_metrics': [{
-                    'accuracy': 0.0,
-                    'classification_report': None,
-                    'confusion_matrix': None
-                }]
-            }
+        if not mask.any():  # If all features are masked
+            print("Warning: Using single zero column for no-feature case")
+            X_masked = np.zeros((X.shape[0], 1))  # Use single zero column
+        else:
+            X_masked = X[:, mask]
     else:
         X_masked = X
     
@@ -198,15 +192,24 @@ def plot_ablation_results(results, save_dir, task):
     
     # Create figure
     plt.figure(figsize=(12, 6))
+    
+    # Plot error bars and points
     plt.errorbar(range(len(accuracies)), accuracies, yerr=std_accuracies, 
-                fmt='o-', capsize=5, capthick=2, elinewidth=2)
+                fmt='o-', capsize=5, capthick=2, elinewidth=2, markersize=8,
+                color='#2E86C1', label='Accuracy')
+    
+    # Add chance level line
+    plt.axhline(y=0.5, color='#E74C3C', linestyle='--', alpha=0.7, label='Chance Level')
     
     # Customize plot
-    plt.title(f'Ablation Study Results: {task} vs. restingstate')
-    plt.xlabel('Networks Removed')
-    plt.ylabel('Classification Accuracy')
+    plt.title(f'Ablation Study Results: {task} vs. restingstate', fontsize=14, pad=20)
+    plt.xlabel('Networks Removed', fontsize=12)
+    plt.ylabel('Classification Accuracy', fontsize=12)
     plt.xticks(range(len(accuracies)), x_labels, rotation=45)
-    plt.grid(True, linestyle='--', alpha=0.7)
+    plt.grid(True, linestyle='--', alpha=0.3)
+    
+    # Set y-axis limits with some padding
+    plt.ylim(0.45, 1.05)  # From slightly below chance to slightly above perfect
     
     # Add network names as annotations
     for i, networks in enumerate(results['networks_removed']):
@@ -220,9 +223,44 @@ def plot_ablation_results(results, save_dir, task):
                         rotation=45,
                         fontsize=8)
     
+    plt.legend()
     plt.tight_layout()
     plt.savefig(os.path.join(save_dir, 'ablation_results.png'), dpi=300, bbox_inches='tight')
     plt.close()
+
+def plot_combined_ablation_results(all_results):
+    """Plot ablation results for all tasks in a single figure."""
+    plt.figure(figsize=(12, 8))
+    
+    # Plot each task's results
+    markers = ['o', 's', '^', 'D', 'v']
+    colors = ['#2E86C1', '#E67E22', '#27AE60', '#8E44AD', '#C0392B']
+    
+    for (task, results), marker, color in zip(all_results.items(), markers, colors):
+        accuracies = [r['metrics']['accuracy'] for r in results['ablation_results']]
+        std_accuracies = [r['metrics']['std_accuracy'] for r in results['ablation_results']]
+        
+        plt.errorbar(range(len(accuracies)), accuracies, yerr=std_accuracies,
+                    fmt=f'{marker}-', capsize=5, capthick=1.5, elinewidth=1.5, markersize=8,
+                    color=color, label=task.capitalize(), alpha=0.8)
+    
+    # Add chance level line
+    plt.axhline(y=0.5, color='#7F8C8D', linestyle='--', alpha=0.7, label='Chance Level')
+    
+    # Customize plot
+    plt.title('Combined Ablation Study Results vs. Resting State', fontsize=14, pad=20)
+    plt.xlabel('Number of Networks Removed', fontsize=12)
+    plt.ylabel('Classification Accuracy', fontsize=12)
+    x_labels = ['Baseline'] + [f"{i+1}" for i in range(7)]
+    plt.xticks(range(len(x_labels)), x_labels)
+    plt.grid(True, linestyle='--', alpha=0.3)
+    
+    # Set y-axis limits with some padding
+    plt.ylim(0.45, 1.05)
+    
+    plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+    plt.tight_layout()
+    return plt.gcf()
 
 def main():
     # List of tasks to run ablation study for
@@ -234,19 +272,27 @@ def main():
         'anticipation'
     ]
     
-    # Run ablation study for each task
+    # Load the most recent results for each task
     all_results = {}
     for task in tasks:
-        print(f"\n{'='*50}")
-        print(f"Running ablation study for {task}")
-        print('='*50)
-        results = run_ablation_experiment(task=task)
-        all_results[task] = results
+        # Find most recent results directory for this task
+        task_dirs = sorted(glob.glob(os.path.join(RESULTS_DIR, f"*_ablation_study_{task}")))
+        if task_dirs:
+            latest_dir = task_dirs[-1]
+            results_file = os.path.join(latest_dir, 'ablation_results.json')
+            if os.path.exists(results_file):
+                with open(results_file, 'r') as f:
+                    results = json.load(f)
+                    all_results[task] = results
     
-    # Save combined results
+    # Create combined plot
+    fig = plot_combined_ablation_results(all_results)
+    
+    # Save combined results plot
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-    with open(os.path.join(RESULTS_DIR, f"{timestamp}_all_ablation_results.json"), 'w') as f:
-        json.dump(all_results, f, indent=2)
+    fig.savefig(os.path.join(RESULTS_DIR, 'summary', f"{timestamp}_combined_ablation_results.png"),
+                dpi=300, bbox_inches='tight')
+    plt.close()
 
 if __name__ == "__main__":
     main()
